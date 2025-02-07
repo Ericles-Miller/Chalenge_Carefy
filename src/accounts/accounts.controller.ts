@@ -9,7 +9,8 @@ export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Post()
-  async create(@Body() createAccountDto: CreateAccountDto) {
-    return this.accountsService.Login(createAccountDto);
+  async login(@Body() createAccountDto: CreateAccountDto) {
+    const url = this.accountsService.Login(createAccountDto);
+    return url;
   }
 }
