@@ -3,6 +3,7 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { HttpService } from '@nestjs/axios';
 import { ResponseTokenDto } from './dto/response-token.dto';
 import * as dotenv from 'dotenv';
+import { SessionTokenResponseDto } from './dto/session-token-response.dto';
 
 dotenv.config();
 
@@ -10,15 +11,18 @@ dotenv.config();
 export class AccountsService {
   constructor(private readonly httpService: HttpService) {}
 
-  async Login({ password, username }: CreateAccountDto): Promise<string> {
-    const { request_token } = await this.getRequestToken();
+  async Login({
+    password,
+    username,
+  }: CreateAccountDto): Promise<SessionTokenResponseDto> {
+    const { requestToken } = await this.getRequestToken();
 
     await this.httpService.axiosRef.post(
       `https://api.themoviedb.org/3/authentication/token/validate_with_login`,
       {
         username,
         password,
-        request_token,
+        request_token: requestToken,
       },
       {
         headers: {
@@ -29,7 +33,7 @@ export class AccountsService {
       },
     );
 
-    const token = await this.createSession(request_token);
+    const token = await this.createSession(requestToken);
     return token;
   }
 
@@ -64,7 +68,11 @@ export class AccountsService {
         },
       );
 
-      return response.data;
+      return {
+        expiresAt: response.data.expires_at,
+        requestToken: response.data.request_token,
+        success: response.data.success,
+      };
     } catch {
       throw new InternalServerErrorException('Error to find request token');
     }
