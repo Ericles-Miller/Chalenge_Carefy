@@ -8,7 +8,7 @@ export class MoviesService {
   constructor(private readonly httpService: HttpService) {}
 
   async create({ name }: CreateMovieDto) {
-    const url = await this.httpService.axiosRef.get();
+    //const url = await this.httpService.axiosRef.get();
   }
 
   findAll() {

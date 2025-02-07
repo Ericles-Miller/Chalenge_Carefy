@@ -2,23 +2,33 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { HttpService } from '@nestjs/axios';
 import { ResponseTokenDto } from './dto/response-token.dto';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Injectable()
 export class AccountsService {
   constructor(private readonly httpService: HttpService) {}
 
-  Login(createAccountDto: CreateAccountDto) {
-    return 'This action adds a new account';
+  async Login(createAccountDto: CreateAccountDto) {
+    const responseTokenDto = await this.getRequestToken();
+    console.log(responseTokenDto);
   }
 
   Logout() {
     return `This action returns all accounts`;
   }
 
-  async getRequestToken(): Promise<ResponseTokenDto> {
+  private async getRequestToken(): Promise<ResponseTokenDto> {
     try {
-      const response = await this.httpService.axiosRef.post(
-        `${process.env.BASE_URL}/authentication/token/new?api_key=${process.env.API_KEY}`,
+      const response = await this.httpService.axiosRef.get(
+        'https://api.themoviedb.org/3/authentication/token/new',
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.TOKEN_API}`,
+            accept: 'application/json',
+          },
+        },
       );
 
       return response.data;
