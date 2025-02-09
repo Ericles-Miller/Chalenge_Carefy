@@ -8,10 +8,6 @@ export class MoviesService {
   constructor(private readonly httpService: HttpService) {}
 
   async create({ name }: CreateMovieDto, accountId: number, sessionId: string): Promise<void> {
-    //preicso verificar se o filma existe na api externa
-    //se nao existir gero um erro
-    //se existir salvo  na lista de desejos status assistir e retorna o id
-
     const findMovieByName = await this.httpService.axiosRef.get(
       `https://api.themoviedb.org/3/search/movie?query=${name}`,
       {
@@ -31,7 +27,6 @@ export class MoviesService {
       throw new BadRequestException('Movie name not found');
     }
 
-    // savlar o filme na lista de desejos
     await this.addFavorite(accountId, sessionId, movie.id.toString());
   }
 
