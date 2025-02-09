@@ -1,0 +1,23 @@
+melhorias a serem feitas 
+
+logout - 
+  - mudar as messagens --ok
+  - mudar e criar o tratamento de erros --ok 
+  - testar e criar um teste 
+
+login -
+  - validar os campos da dto  --ok
+  - melhorar o tratamento de erros -- ok 
+  - tentar criar mensagens personalizadas com base nos erros --ok
+  - tentar criar um test 
+  - mudar nome da DTO --ok
+
+customLogger - 
+  - criar testes com base no nivel de logs
+
+documentacao 
+  - documentar todos os endpoints com status e info
+  - 
+
+validacao do token 
+  - mudar os token invalidos para banco inves de memorias
