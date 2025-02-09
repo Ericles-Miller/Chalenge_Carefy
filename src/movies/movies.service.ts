@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { HttpService } from '@nestjs/axios';
@@ -7,8 +7,32 @@ import { HttpService } from '@nestjs/axios';
 export class MoviesService {
   constructor(private readonly httpService: HttpService) {}
 
-  async create({ name }: CreateMovieDto) {
-    //const url = await this.httpService.axiosRef.get();
+  async create({ name }: CreateMovieDto, accountId: number, sessionId: string): Promise<void> {
+    //preicso verificar se o filma existe na api externa
+    //se nao existir gero um erro
+    //se existir salvo  na lista de desejos status assistir e retorna o id
+
+    const findMovieByName = await this.httpService.axiosRef.get(
+      `https://api.themoviedb.org/3/search/movie?query=${name}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.TOKEN_API}`,
+          accept: 'application/json',
+        },
+      },
+    );
+
+    if (findMovieByName.data.results.length === 0) {
+      throw new BadRequestException('Movie name not found');
+    }
+
+    const movie = findMovieByName.data.results.find((movie) => movie.title === name);
+    if (!movie) {
+      throw new BadRequestException('Movie name not found');
+    }
+
+    // savlar o filme na lista de desejos
+    await this.addFavorite(accountId, sessionId, movie.id.toString());
   }
 
   findAll() {
@@ -23,7 +47,28 @@ export class MoviesService {
     return `This action updates a #${id} movie`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} movie`;
+  async addFavorite(accountId: number, sessionId: string, movieId: string): Promise<void> {
+    try {
+      await this.httpService.axiosRef.post(
+        `https://api.themoviedb.org/3/account/${accountId}/favorite`,
+        {
+          media_type: 'movie',
+          media_id: movieId,
+          favorite: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.TOKEN_API}`,
+            accept: 'application/json',
+          },
+          params: {
+            api_key: process.env.API_KEY,
+            session_id: sessionId,
+          },
+        },
+      );
+    } catch (error) {
+      throw new InternalServerErrorException('Error to add movie to favorites', error);
+    }
   }
 }
