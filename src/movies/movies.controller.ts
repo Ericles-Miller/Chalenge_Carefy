@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { AuthGuard } from 'src/accounts/auth/AuthGuards';
+import { AuthGuard } from 'src/accounts/AuthGuards';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('movies')

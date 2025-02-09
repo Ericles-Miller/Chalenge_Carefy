@@ -1,3 +1,6 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class SessionTokenResponseDto {
-  token: string;
+  @ApiProperty()
+  sessionId: string;
 }
