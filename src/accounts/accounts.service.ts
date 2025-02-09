@@ -11,10 +11,7 @@ dotenv.config();
 export class AccountsService {
   constructor(private readonly httpService: HttpService) {}
 
-  async Login({
-    password,
-    username,
-  }: CreateAccountDto): Promise<SessionTokenResponseDto> {
+  async Login({ password, username }: CreateAccountDto): Promise<SessionTokenResponseDto> {
     const { requestToken } = await this.getRequestToken();
 
     await this.httpService.axiosRef.post(
@@ -34,21 +31,18 @@ export class AccountsService {
     );
 
     const token = await this.createSession(requestToken);
-    return token;
+    return { token };
   }
 
   async Logout(sessionId: string) {
     try {
-      await this.httpService.axiosRef.delete(
-        'https://api.themoviedb.org/3/authentication/session',
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.TOKEN_API}`,
-            accept: 'application/json',
-          },
-          data: { session_id: sessionId },
+      await this.httpService.axiosRef.delete('https://api.themoviedb.org/3/authentication/session', {
+        headers: {
+          Authorization: `Bearer ${process.env.TOKEN_API}`,
+          accept: 'application/json',
         },
-      );
+        data: { session_id: sessionId },
+      });
 
       return { message: 'Sessão encerrada com sucesso' };
     } catch {
@@ -78,7 +72,7 @@ export class AccountsService {
     }
   }
 
-  private async createSession(requestToken: string) {
+  private async createSession(requestToken: string): Promise<string> {
     try {
       const response = await this.httpService.axiosRef.post(
         'https://api.themoviedb.org/3/authentication/session/new',

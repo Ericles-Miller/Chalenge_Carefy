@@ -10,9 +10,7 @@ export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Post()
-  async login(
-    @Body() createAccountDto: CreateAccountDto,
-  ): Promise<SessionTokenResponseDto> {
+  async login(@Body() createAccountDto: CreateAccountDto): Promise<SessionTokenResponseDto> {
     const url = this.accountsService.Login(createAccountDto);
     return url;
   }

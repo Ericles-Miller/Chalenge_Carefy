@@ -6,12 +6,7 @@ import { LoggersModule } from './loggers/loggers.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [
-    MoviesModule,
-    AccountsModule,
-    TypeOrmModule.forRoot(dataSourceOptions),
-    LoggersModule,
-  ],
+  imports: [MoviesModule, AccountsModule, TypeOrmModule.forRoot(dataSourceOptions), LoggersModule],
   controllers: [],
   providers: [],
 })
