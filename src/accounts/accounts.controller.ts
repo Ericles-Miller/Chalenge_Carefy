@@ -3,7 +3,7 @@ import { AccountsService } from './accounts.service';
 import { LoginAccountDto } from './dto/login-account.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SessionTokenResponseDto } from './dto/session-token-response.dto';
-import { AuthGuard } from './AuthGuards';
+import { AuthGuard } from './auth/AuthGuards';
 import { logoutAccountDto } from './dto/logout-account.dto';
 
 @Controller('accounts')
@@ -50,7 +50,7 @@ export class AccountsController {
     }
     `,
   })
-  @ApiResponse({ status: 201, description: 'logout user successfully', type: 'string' })
+  @ApiResponse({ status: 200, description: 'logout user successfully', type: 'string' })
   @ApiResponse({
     status: 400,
     description: 'Bad Request. Validation errors or invalid data.',

@@ -1,8 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { CheckTokens } from './CheckTokens';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
+  private readonly checkTokens = new CheckTokens();
   constructor(private readonly httpService: HttpService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -20,6 +22,10 @@ export class AuthGuard implements CanActivate {
         },
         params: { session_id: sessionId },
       });
+
+      if (this.checkTokens.isTokenInvalid(sessionId)) {
+        throw new UnauthorizedException('Expired session ID');
+      }
 
       return true;
     } catch {

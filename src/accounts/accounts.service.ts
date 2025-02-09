@@ -10,11 +10,13 @@ import { ResponseTokenDto } from './dto/response-token.dto';
 import * as dotenv from 'dotenv';
 import { SessionTokenResponseDto } from './dto/session-token-response.dto';
 import { logoutAccountDto } from './dto/logout-account.dto';
+import { CheckTokens } from './auth/CheckTokens';
 
 dotenv.config();
 
 @Injectable()
 export class AccountsService {
+  private readonly checkTokens = new CheckTokens();
   constructor(private readonly httpService: HttpService) {}
 
   async Login({ password, username }: LoginAccountDto): Promise<SessionTokenResponseDto> {
@@ -53,6 +55,8 @@ export class AccountsService {
         },
         data: { session_id: sessionId },
       });
+
+      this.checkTokens.invalidateToken(sessionId);
     } catch (error) {
       this.handleHttpError(error, 'Error to logout user');
     }
