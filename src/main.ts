@@ -9,6 +9,14 @@ async function bootstrap() {
     .setTitle('docs Api')
     .setDescription('')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header',
+      },
+      'sessionAuth',
+    )
     .addTag('')
     .build();
 
