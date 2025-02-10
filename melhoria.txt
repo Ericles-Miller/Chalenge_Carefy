@@ -18,6 +18,7 @@ customLogger -
 documentacao 
   - documentar todos os endpoints com status e info
   - docs controller movies 
+  - mexer na response de findall movies
   - documetar controller logs
 
 validacao do token 

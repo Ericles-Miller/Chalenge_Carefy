@@ -24,7 +24,7 @@ export class MoviesService {
     private readonly repository: Repository<Movie>,
   ) {}
 
-  async create({ name }: CreateMovieDto): Promise<void> {
+  async create({ name }: CreateMovieDto): Promise<Movie> {
     const findMovieByName = await this.httpService.axiosRef.get(
       `https://api.themoviedb.org/3/search/movie?query=${name}`,
       {
@@ -74,7 +74,7 @@ export class MoviesService {
       title,
     );
 
-    await this.repository.save(movieEntity);
+    return await this.repository.save(movieEntity);
   }
 
   async findAll(page: number, limit: number, status?: EStatusMovie): Promise<PaginatedListDto<Movie[]>> {
@@ -95,9 +95,7 @@ export class MoviesService {
   async findOne(id: string): Promise<Movie> {
     try {
       const movie = await this.repository.findOneBy({ id });
-      if (!movie) {
-        throw new NotFoundException('MovieId does not exists');
-      }
+      if (!movie) throw new NotFoundException('MovieId does not exists');
 
       return movie;
     } catch (error) {
@@ -109,7 +107,8 @@ export class MoviesService {
 
   async updateStateMovieDatabase(id: string, { statusMovie }: UpdateStatusMovieDto): Promise<void> {
     try {
-      const movie = await this.findOne(id);
+      const movie = await this.repository.findOneBy({ id });
+      if (!movie) throw new NotFoundException('MovieId does not exists');
 
       if (statusMovie === EStatusMovie.AVALIADO && movie.status !== EStatusMovie.ASSISTIDO)
         throw new BadRequestException('The movie status can only be changed if the movie is watched');
@@ -126,7 +125,7 @@ export class MoviesService {
       movie.setStatus(statusMovie);
       await this.repository.update({ id }, movie);
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
+      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
 
       throw new InternalServerErrorException('Error to update status movie');
     }
@@ -134,7 +133,10 @@ export class MoviesService {
 
   async rateMovie(id: string, { rate }: RateMovieDto): Promise<void> {
     try {
-      const movie = await this.findOne(id);
+      const movie = await this.repository.findOneBy({ id });
+      if (!movie) {
+        throw new NotFoundException('MovieId does not exists');
+      }
 
       if (movie.status === EStatusMovie.ASSISTIR)
         throw new BadRequestException('the movie status can only be changed if the movie is watched');
@@ -146,7 +148,7 @@ export class MoviesService {
       movie.setStatus(EStatusMovie.AVALIADO);
       await this.repository.update({ id }, movie);
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
+      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
 
       throw new InternalServerErrorException('Error to rate movie');
     }
