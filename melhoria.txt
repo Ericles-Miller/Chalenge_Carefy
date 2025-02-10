@@ -18,6 +18,7 @@ customLogger -
 documentacao 
   - documentar todos os endpoints com status e info
   - docs controller movies 
+  - documetar controller logs
 
 validacao do token 
   - mudar os token invalidos para banco inves de memorias
@@ -25,13 +26,16 @@ validacao do token
 
 -banco de dados 
  - fazer com que o nome do filme seja unique
- - 
+ - adicionar createdAt e updatedAt
+ - adicionar como default estado a assistir na tabela 
 
 ############ endpoints 
 
 - `POST /filme` → Adiciona um filme à lista de desejos. Busca informações na API externa e gera um identificador único.  ok
 - `GET /filme` → Lista todos os filmes na lista de desejos.  -- ok
-- `GET /filme/:id` → Retorna detalhes de um filme específico. 
+- `GET /filme/:id` → Retorna detalhes de um filme específico. -- ok
 - `PUT /filme/:id/estado` → Move o filme para um novo estado (ex: assistido, avaliado, recomendado). 
 - `POST /filme/:id/avaliar` → Avalia o filme com uma nota de 0 a 5. 
 - `GET /filme/:id/historico` → Retorna o histórico completo de um filme.
+
+- `GET /logs` → Retorna todos os logs registrados (para fins de debug).

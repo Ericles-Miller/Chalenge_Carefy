@@ -43,11 +43,18 @@ export class MoviesController {
     return await this.moviesService.findAllApi(user.accountId, user.sessionId);
   }
 
-  @Get(':id')
+  @Get(':id/database')
   @ApiBearerAuth('sessionAuth')
   @UseGuards(AuthGuard)
-  findOne(@Param('id') id: string) {
-    return this.moviesService.findOne(+id);
+  async findOneDatabase(@Param('id') id: string): Promise<Movie> {
+    return await this.moviesService.findOneDatabase(id);
+  }
+
+  @Get(':id/api')
+  @ApiBearerAuth('sessionAuth')
+  @UseGuards(AuthGuard)
+  async findOneApi(@Param('id') id: number): Promise<any> {
+    return await this.moviesService.findOneApi(id);
   }
 
   @Patch(':id')

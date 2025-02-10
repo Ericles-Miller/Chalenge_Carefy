@@ -109,8 +109,36 @@ export class MoviesService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} movie`;
+  async findOneDatabase(id: string): Promise<Movie> {
+    try {
+      const movie = await this.repository.findOneBy({ id });
+      if (!movie) {
+        throw new BadRequestException('MovieId does not exists');
+      }
+
+      return movie;
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+
+      throw new InternalServerErrorException('Error finding movie');
+    }
+  }
+
+  async findOneApi(id: number): Promise<any> {
+    try {
+      const response = await this.httpService.axiosRef.get(`https://api.themoviedb.org/3/movie/${id}`, {
+        headers: {
+          Authorization: `Bearer ${process.env.TOKEN_API}`,
+          accept: 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+
+      throw new InternalServerErrorException('Error finding movie');
+    }
   }
 
   update(id: number, updateMovieDto: UpdateMovieDto) {
