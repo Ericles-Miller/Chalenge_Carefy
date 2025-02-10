@@ -39,7 +39,7 @@ export class Logger {
   actionType: EActionType;
 
   @ManyToOne(() => Movie, (movie) => movie.loggers)
-  movie: Movie;
+  movie?: Movie;
 
   constructor(
     method: string,

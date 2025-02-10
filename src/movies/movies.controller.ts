@@ -45,7 +45,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   async create(@Body() createMovieDto: CreateMovieDto, @Res() response: Response): Promise<Response> {
     //const user = request.user;
@@ -95,7 +95,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 200,
-    type: PaginatedListDto<[Movie]>,
+    type: PaginatedListDto<Movie>,
     description: 'Find all movies with filters successfully',
   })
   @ApiResponse({
@@ -104,7 +104,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   async findAll(
     @Query('statusMovie') statusMovie?: EStatusMovie,
@@ -142,7 +142,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   async findOne(@Param('id') id: string): Promise<Movie> {
     return await this.moviesService.findOne(id);
@@ -177,7 +177,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   @ApiResponse({
     status: 400,
@@ -195,13 +195,27 @@ export class MoviesController {
     required: true,
   })
   @ApiOperation({
-    summary: 'find movie with id',
+    summary: 'Update status of movie',
     description: `
-    sample request: rate movie
+    sample request: update status movie to ASSISTIDO
     PUT /movies/8abcb8a5-9709-41c7-85df-08a44fd1c6f4/estado
     REQUEST BODY: 
     {
-      statusMovie: "Assitir"
+      statusMovie: "Assistido"
+    }
+
+    sample request: update status movie to NAO_RECOMENDADO
+    PUT /movies/8abcb8a5-9709-41c7-85df-08a44fd1c6f4/estado
+    REQUEST BODY: 
+    {
+      statusMovie: "Nao recomendado"
+    }
+
+    sample request: update status movie to RECOMENDADO
+    PUT /movies/8abcb8a5-9709-41c7-85df-08a44fd1c6f4/estado
+    REQUEST BODY: 
+    {
+      statusMovie: "Recomendado"
     }
     `,
   })
@@ -219,7 +233,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   @ApiResponse({
     status: 400,
@@ -258,7 +272,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   async getHistory(
     @Param('id') id: string,
