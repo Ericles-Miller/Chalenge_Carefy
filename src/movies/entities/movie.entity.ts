@@ -1,45 +1,74 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { EStatusMovie } from '../status-movie.enum';
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 
 @Entity('movie')
 export class Movie {
   @PrimaryGeneratedColumn('uuid')
+  @ApiProperty()
+  @Expose()
   id: string;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   adult: boolean;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   backdropPath: string;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   ApiMovieId: number;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   originalLanguage: string;
 
-  @Column()
+  @Column({ unique: true })
+  @ApiProperty()
+  @Expose()
   originalTitle: string;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   overview: string;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   popularity: number;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   posterPath: string;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   releaseDate: Date;
 
   @Column()
+  @ApiProperty()
+  @Expose()
   title: string;
 
-  @Column()
-  voteAverage: number;
+  @Column({ default: 0 })
+  @ApiProperty()
+  @Expose()
+  rate: number;
 
-  @Column()
-  voteCount: number;
+  @Column({ default: EStatusMovie.ASSISTIR })
+  @ApiProperty()
+  @Expose()
+  status: EStatusMovie;
 
   constructor(
     adult: boolean,
@@ -52,8 +81,6 @@ export class Movie {
     posterPath: string,
     releaseDate: Date,
     title: string,
-    voteAverage: number,
-    voteCount: number,
   ) {
     this.adult = adult;
     this.backdropPath = backdropPath;
@@ -65,7 +92,13 @@ export class Movie {
     this.posterPath = posterPath;
     this.releaseDate = releaseDate;
     this.title = title;
-    this.voteAverage = voteAverage;
-    this.voteCount = voteCount;
+  }
+
+  setRate(rate: number): void {
+    this.rate = rate;
+  }
+
+  setStatus(status: EStatusMovie): void {
+    this.status = status;
   }
 }
