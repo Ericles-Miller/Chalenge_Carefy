@@ -55,13 +55,4 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-<<<<<<< HEAD
-# database
-=======
 
-# database 
->>>>>>> 946ee9498a74f45b778277806816dbad9f6045f7
-database.sqlite3
-*.sqlite3
-*.db
-*.db3
