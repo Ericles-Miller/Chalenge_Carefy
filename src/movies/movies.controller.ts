@@ -9,6 +9,7 @@ import { RateMovieDto } from './dto/rate-movie.dto';
 import { UpdateStatusMovieDto } from './dto/update-movie.dto';
 import { EStatusMovie } from './status-movie.enum';
 import { Response } from 'express';
+import { Logger } from 'src/loggers/entities/logger.entity';
 
 @Controller('movies')
 @ApiTags('movies')
@@ -234,6 +235,15 @@ export class MoviesController {
   @Get(':id/historico')
   @ApiBearerAuth('sessionAuth')
   @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({
+    summary: 'find history movie with id',
+    description: `
+    sample request: find movie history paginated
+    Get /movies/8abcb8a5-9709-41c7-85df-08a44fd1c6f4/historico?page=3&limit=5
+    `,
+  })
   @ApiResponse({
     status: 404,
     description: 'MovieId does not exists',
@@ -250,7 +260,13 @@ export class MoviesController {
     status: 401,
     description: 'unauthorized',
   })
-  async getHistory(@Param('id') id: string) {
-    return this.moviesService.getMovieHistory(id);
+  async getHistory(
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ): Promise<PaginatedListDto<Logger[]>> {
+    const pageNumber = Number(page) > 0 ? Number(page) : 1;
+    const limitNumber = Number(limit) > 0 ? Number(limit) : 10;
+    return this.moviesService.getMovieHistory(pageNumber, limitNumber, id);
   }
 }

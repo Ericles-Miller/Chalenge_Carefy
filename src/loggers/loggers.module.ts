@@ -18,6 +18,6 @@ import { Logger } from './entities/logger.entity';
 })
 export class LoggersModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(LoggerMiddleware).forRoutes('movies');
   }
 }

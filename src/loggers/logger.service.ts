@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ELoggerLevel } from './logger-level.enum';
 import { EActionType } from './action-type.enum';
+import { PaginatedListDto } from 'src/movies/dto/paginated-list.dto';
 
 @Injectable()
 export class LoggerService {
@@ -51,15 +52,22 @@ export class LoggerService {
     }
   }
 
-  async findHistoryMovie(movieId: string): Promise<Logger[]> {
+  async findHistoryMovie(page: number, limit: number, movieId: string): Promise<PaginatedListDto<Logger[]>> {
     try {
-      const logs = await this.logRepository.find({
+      const [logs, total] = await this.logRepository.findAndCount({
         where: { movieId },
         order: { createdAt: 'DESC' },
         relations: ['movie'],
+        take: limit,
+        skip: (page - 1) * limit,
       });
 
-      return logs;
+      return {
+        data: logs,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      };
     } catch {
       throw new InternalServerErrorException('Error finding loggers');
     }
