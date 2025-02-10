@@ -227,4 +227,27 @@ export class MoviesController {
   ): Promise<void> {
     return await this.moviesService.updateStateMovieDatabase(id, updateStatusMovieDto);
   }
+
+  @Get(':id/historico')
+  @ApiBearerAuth('sessionAuth')
+  @UseGuards(AuthGuard)
+  @ApiResponse({
+    status: 404,
+    description: 'MovieId does not exists',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'update status movie successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'unauthorized',
+  })
+  async getHistory(@Param('id') id: string) {
+    return this.moviesService.getMovieHistory(id);
+  }
 }

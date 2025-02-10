@@ -14,7 +14,7 @@ import { Logger } from './entities/logger.entity';
   ],
   controllers: [LoggerController],
   providers: [LoggerService, CustomLogger],
-  exports: [CustomLogger],
+  exports: [CustomLogger, LoggerService],
 })
 export class LoggersModule {
   configure(consumer: MiddlewareConsumer) {

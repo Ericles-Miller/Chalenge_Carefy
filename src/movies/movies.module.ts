@@ -4,9 +4,10 @@ import { MoviesController } from './movies.controller';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
+import { LoggersModule } from 'src/loggers/loggers.module';
 
 @Module({
-  imports: [HttpModule, TypeOrmModule.forFeature([Movie])],
+  imports: [HttpModule, TypeOrmModule.forFeature([Movie]), LoggersModule],
   controllers: [MoviesController],
   providers: [MoviesService],
 })

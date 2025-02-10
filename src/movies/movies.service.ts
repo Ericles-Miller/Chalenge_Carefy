@@ -14,6 +14,8 @@ import { PaginatedListDto } from './dto/paginated-list.dto';
 import { EStatusMovie } from './status-movie.enum';
 import { RateMovieDto } from './dto/rate-movie.dto';
 import { UpdateStatusMovieDto } from './dto/update-movie.dto';
+import { Logger } from 'src/loggers/entities/logger.entity';
+import { LoggerService } from 'src/loggers/logger.service';
 
 @Injectable()
 export class MoviesService {
@@ -22,6 +24,8 @@ export class MoviesService {
 
     @InjectRepository(Movie)
     private readonly repository: Repository<Movie>,
+
+    private readonly loggerService: LoggerService,
   ) {}
 
   async create({ name }: CreateMovieDto): Promise<Movie> {
@@ -151,6 +155,21 @@ export class MoviesService {
       if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
 
       throw new InternalServerErrorException('Error to rate movie');
+    }
+  }
+
+  async getMovieHistory(id: string): Promise<Logger[]> {
+    try {
+      const movie = await this.repository.findOneBy({ id });
+      if (!movie) {
+        throw new NotFoundException('MovieId does not exists');
+      }
+
+      return await this.loggerService.findHistoryMovie(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+
+      throw new InternalServerErrorException('Error finding movie history');
     }
   }
 }
