@@ -1,10 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { ELoggerLevel } from '../logger-level.enum';
+import { EActionType } from '../action-type.enum';
 
 @Entity('loggers')
 export class Logger {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @Column()
   method: string;
@@ -24,11 +28,14 @@ export class Logger {
   @Column()
   ip: string;
 
-  @Column()
+  @Column({ default: ELoggerLevel.INFO })
   level: ELoggerLevel;
 
   @Column()
   timeRequest: number;
+
+  @Column({ default: EActionType.OTHER })
+  actionType: EActionType;
 
   constructor(
     method: string,
@@ -38,6 +45,7 @@ export class Logger {
     moveId: string,
     ip: string,
     timeRequest: number,
+    actionType: EActionType,
   ) {
     this.method = method;
     this.url = url;
@@ -46,5 +54,6 @@ export class Logger {
     this.ip = ip;
     this.timeRequest = timeRequest;
     this.statusCode = statusCode;
+    this.actionType = actionType;
   }
 }

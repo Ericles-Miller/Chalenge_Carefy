@@ -3,6 +3,7 @@ import { Logger } from './entities/logger.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ELoggerLevel } from './logger-level.enum';
+import { EActionType } from './action-type.enum';
 
 @Injectable()
 export class LoggerService {
@@ -15,10 +16,11 @@ export class LoggerService {
     ip: string,
     level: ELoggerLevel,
     timeRequest: number,
+    actionType: EActionType = EActionType.OTHER,
     movieId?: string,
   ): Promise<void> {
     try {
-      const log = new Logger(method, url, statusCode, level, movieId, ip, timeRequest);
+      const log = new Logger(method, url, statusCode, level, movieId, ip, timeRequest, actionType);
 
       await this.logRepository.save(log);
     } catch {
@@ -46,6 +48,16 @@ export class LoggerService {
       if (error instanceof NotFoundException) throw error;
 
       throw new InternalServerErrorException('Error finding log');
+    }
+  }
+
+  async findHistoryMovie(movieId: string): Promise<Logger[]> {
+    try {
+      const logs = await this.logRepository.find({ where: { movieId }, order: { createdAt: 'DESC' } });
+
+      return logs;
+    } catch {
+      throw new InternalServerErrorException('Error finding loggers');
     }
   }
 }

@@ -1,4 +1,9 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateMovieDto } from './create-movie.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { EStatusMovie } from '../status-movie.enum';
+import { IsEnum } from 'class-validator';
 
-export class UpdateMovieDto extends PartialType(CreateMovieDto) {}
+export class UpdateStatusMovieDto {
+  @ApiProperty({ enum: EStatusMovie, enumName: 'EStatusMovie' })
+  @IsEnum(EStatusMovie)
+  statusMovie: EStatusMovie;
+}

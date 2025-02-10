@@ -31,11 +31,11 @@ export class CustomLogger implements LoggerService {
     }
   }
 
-  debug(message: string, context?: string) {
-    if (this.shouldLog('debug', context)) {
-      this.logger.debug({ context }, message);
-    }
-  }
+  // debug(message: string, context?: string) {
+  //   if (this.shouldLog('debug', context)) {
+  //     this.logger.debug({ context }, message);
+  //   }
+  // }
 
   log(message: string, context?: string) {
     if (this.shouldLog('info', context)) {
