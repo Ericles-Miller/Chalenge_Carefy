@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ELoggerLevel } from '../logger-level.enum';
 import { EActionType } from '../action-type.enum';
+import { Movie } from 'src/movies/entities/movie.entity';
 
 @Entity('loggers')
 export class Logger {
@@ -36,6 +37,9 @@ export class Logger {
 
   @Column({ default: EActionType.OTHER })
   actionType: EActionType;
+
+  @ManyToOne(() => Movie, (movie) => movie.loggers)
+  movie: Movie;
 
   constructor(
     method: string,

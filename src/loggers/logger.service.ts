@@ -53,7 +53,11 @@ export class LoggerService {
 
   async findHistoryMovie(movieId: string): Promise<Logger[]> {
     try {
-      const logs = await this.logRepository.find({ where: { movieId }, order: { createdAt: 'DESC' } });
+      const logs = await this.logRepository.find({
+        where: { movieId },
+        order: { createdAt: 'DESC' },
+        relations: ['movie'],
+      });
 
       return logs;
     } catch {
