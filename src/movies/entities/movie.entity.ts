@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { EStatusMovie } from '../status-movie.enum';
 
 @Entity('movie')
 export class Movie {
@@ -17,7 +18,7 @@ export class Movie {
   @Column()
   originalLanguage: string;
 
-  @Column()
+  @Column({ unique: true })
   originalTitle: string;
 
   @Column()
@@ -35,11 +36,11 @@ export class Movie {
   @Column()
   title: string;
 
-  @Column()
-  voteAverage: number;
+  @Column({ default: 0 })
+  rate: number;
 
-  @Column()
-  voteCount: number;
+  @Column({ default: EStatusMovie.ASSISTIR })
+  status: EStatusMovie;
 
   constructor(
     adult: boolean,
@@ -52,8 +53,6 @@ export class Movie {
     posterPath: string,
     releaseDate: Date,
     title: string,
-    voteAverage: number,
-    voteCount: number,
   ) {
     this.adult = adult;
     this.backdropPath = backdropPath;
@@ -65,7 +64,13 @@ export class Movie {
     this.posterPath = posterPath;
     this.releaseDate = releaseDate;
     this.title = title;
-    this.voteAverage = voteAverage;
-    this.voteCount = voteCount;
+  }
+
+  setRate(rate: number): void {
+    this.rate = rate;
+  }
+
+  setStatus(status: EStatusMovie): void {
+    this.status = status;
   }
 }

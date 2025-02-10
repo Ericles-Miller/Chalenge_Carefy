@@ -1,14 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, Query, Put } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
 import { AuthGuard } from 'src/accounts/auth/AuthGuards';
-import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { RequestWithUser } from 'src/types/request-with-user';
 import { PaginatedListDto } from './dto/paginated-list.dto';
 import { Movie } from './entities/movie.entity';
+import { RateMovieDto } from './dto/rate-movie.dto';
+import { UpdateStatusMovieDto } from './dto/update-movie.dto';
+import { EStatusMovie } from './status-movie.enum';
 
 @Controller('movies')
+@ApiTags('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
@@ -17,53 +20,58 @@ export class MoviesController {
   @UseGuards(AuthGuard)
   async create(@Body() createMovieDto: CreateMovieDto, @Req() request: RequestWithUser) {
     const user = request.user;
-    return await this.moviesService.create(createMovieDto, user.accountId, user.sessionId);
+    return await this.moviesService.create(createMovieDto);
   }
 
-  @Get('database')
+  @Get('')
   @ApiBearerAuth('sessionAuth')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  async findAllDatabase(
+  @ApiQuery({
+    name: 'statusMovie',
+    enum: EStatusMovie,
+    enumName: 'EStatusMovie',
+    example: 'Recomendado',
+    description: 'status of movie',
+    required: false,
+  })
+  async findAll(
+    @Query('statusMovie') statusMovie?: EStatusMovie,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ): Promise<PaginatedListDto<Movie[]>> {
     const pageNumber = Number(page) > 0 ? Number(page) : 1;
     const limitNumber = Number(limit) > 0 ? Number(limit) : 10;
 
-    return await this.moviesService.findAllDatabase(pageNumber, limitNumber);
+    return await this.moviesService.findAll(pageNumber, limitNumber, statusMovie);
   }
 
-  @Get('api')
-  @Get('database')
-  @ApiBearerAuth('sessionAuth')
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  async findAllAPI(
-    @Req() request: RequestWithUser,
-    @Query('page') page?: string,
-  ): Promise<PaginatedListDto<any[]>> {
-    const user = request.user;
-    const pageNumber = Number(page) > 0 ? Number(page) : 1;
-    return await this.moviesService.findAllApi(user.accountId, user.sessionId, pageNumber);
-  }
-
-  @Get(':id/database')
+  @Get(':id/')
   @ApiBearerAuth('sessionAuth')
   @UseGuards(AuthGuard)
-  async findOneDatabase(@Param('id') id: string): Promise<Movie> {
-    return await this.moviesService.findOneDatabase(id);
+  async findOne(@Param('id') id: string): Promise<Movie> {
+    return await this.moviesService.findOne(id);
   }
 
-  @Get(':id/api')
+  @Post(':id/avaliar')
   @ApiBearerAuth('sessionAuth')
   @UseGuards(AuthGuard)
-  async findOneApi(@Param('id') id: number): Promise<any> {
-    return await this.moviesService.findOneApi(id);
+  async rateMovie(@Param('id') id: string, @Body() rateMovieDto: RateMovieDto): Promise<void> {
+    return await this.moviesService.rateMovie(id, rateMovieDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto) {
-    return this.moviesService.update(+id, updateMovieDto);
+  @Put(':id/estado')
+  @ApiBearerAuth('sessionAuth')
+  @UseGuards(AuthGuard)
+  @ApiBody({
+    type: UpdateStatusMovieDto,
+    required: true,
+  })
+  async updateStateMovieDatabase(
+    @Param('id') id: string,
+    @Body() updateStatusMovieDto: UpdateStatusMovieDto,
+  ): Promise<void> {
+    return await this.moviesService.updateStateMovieDatabase(id, updateStatusMovieDto);
   }
 }
