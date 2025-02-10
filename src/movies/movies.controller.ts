@@ -9,6 +9,7 @@ import { RateMovieDto } from './dto/rate-movie.dto';
 import { UpdateStatusMovieDto } from './dto/update-movie.dto';
 import { EStatusMovie } from './status-movie.enum';
 import { Response } from 'express';
+import { Logger } from 'src/loggers/entities/logger.entity';
 
 @Controller('movies')
 @ApiTags('movies')
@@ -44,7 +45,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   async create(@Body() createMovieDto: CreateMovieDto, @Res() response: Response): Promise<Response> {
     //const user = request.user;
@@ -94,7 +95,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 200,
-    type: PaginatedListDto<[Movie]>,
+    type: PaginatedListDto<Movie>,
     description: 'Find all movies with filters successfully',
   })
   @ApiResponse({
@@ -103,7 +104,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   async findAll(
     @Query('statusMovie') statusMovie?: EStatusMovie,
@@ -141,7 +142,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   async findOne(@Param('id') id: string): Promise<Movie> {
     return await this.moviesService.findOne(id);
@@ -176,7 +177,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   @ApiResponse({
     status: 400,
@@ -194,13 +195,27 @@ export class MoviesController {
     required: true,
   })
   @ApiOperation({
-    summary: 'find movie with id',
+    summary: 'Update status of movie',
     description: `
-    sample request: rate movie
+    sample request: update status movie to ASSISTIDO
     PUT /movies/8abcb8a5-9709-41c7-85df-08a44fd1c6f4/estado
     REQUEST BODY: 
     {
-      statusMovie: "Assitir"
+      statusMovie: "Assistido"
+    }
+
+    sample request: update status movie to NAO_RECOMENDADO
+    PUT /movies/8abcb8a5-9709-41c7-85df-08a44fd1c6f4/estado
+    REQUEST BODY: 
+    {
+      statusMovie: "Nao recomendado"
+    }
+
+    sample request: update status movie to RECOMENDADO
+    PUT /movies/8abcb8a5-9709-41c7-85df-08a44fd1c6f4/estado
+    REQUEST BODY: 
+    {
+      statusMovie: "Recomendado"
     }
     `,
   })
@@ -218,7 +233,7 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
   @ApiResponse({
     status: 400,
@@ -234,6 +249,15 @@ export class MoviesController {
   @Get(':id/historico')
   @ApiBearerAuth('sessionAuth')
   @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({
+    summary: 'find history movie with id',
+    description: `
+    sample request: find movie history paginated
+    Get /movies/8abcb8a5-9709-41c7-85df-08a44fd1c6f4/historico?page=3&limit=5
+    `,
+  })
   @ApiResponse({
     status: 404,
     description: 'MovieId does not exists',
@@ -248,9 +272,15 @@ export class MoviesController {
   })
   @ApiResponse({
     status: 401,
-    description: 'unauthorized',
+    description: 'Unauthorized',
   })
-  async getHistory(@Param('id') id: string) {
-    return this.moviesService.getMovieHistory(id);
+  async getHistory(
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ): Promise<PaginatedListDto<Logger[]>> {
+    const pageNumber = Number(page) > 0 ? Number(page) : 1;
+    const limitNumber = Number(limit) > 0 ? Number(limit) : 10;
+    return this.moviesService.getMovieHistory(pageNumber, limitNumber, id);
   }
 }

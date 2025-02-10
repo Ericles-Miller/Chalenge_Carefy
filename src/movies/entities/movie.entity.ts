@@ -1,7 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { EStatusMovie } from '../status-movie.enum';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import { Logger } from 'src/loggers/entities/logger.entity';
 
 @Entity('movie')
 export class Movie {
@@ -9,6 +10,16 @@ export class Movie {
   @ApiProperty()
   @Expose()
   id: string;
+
+  @ApiProperty()
+  @Expose()
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @ApiProperty()
+  @Expose()
+  @Column({ nullable: true })
+  updatedAt?: Date;
 
   @Column()
   @ApiProperty()
@@ -70,6 +81,9 @@ export class Movie {
   @Expose()
   status: EStatusMovie;
 
+  @OneToMany(() => Logger, (logger) => logger.movie)
+  loggers: Logger[];
+
   constructor(
     adult: boolean,
     backdropPath: string,
@@ -96,9 +110,11 @@ export class Movie {
 
   setRate(rate: number): void {
     this.rate = rate;
+    this.updatedAt = new Date();
   }
 
   setStatus(status: EStatusMovie): void {
     this.status = status;
+    this.updatedAt = new Date();
   }
 }

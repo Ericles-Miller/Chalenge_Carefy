@@ -19,7 +19,7 @@ export class LoggerMiddleware implements NestMiddleware {
 
     response.on('finish', () => {
       const { statusCode } = response;
-      const movieId = request.params.id || response.locals.id;
+      let movieId = request.params.id || response.locals.id;
       const timeRequest = differenceInMilliseconds(startTimeRequest, Date.now());
 
       let actionType: EActionType = EActionType.OTHER;
@@ -33,6 +33,8 @@ export class LoggerMiddleware implements NestMiddleware {
 
       const level =
         statusCode >= 500 ? ELoggerLevel.ERROR : statusCode >= 400 ? ELoggerLevel.WARN : ELoggerLevel.INFO;
+
+      if (level === ELoggerLevel.ERROR || level === ELoggerLevel.WARN) movieId = null;
 
       this.logsService.logRequest(
         method,

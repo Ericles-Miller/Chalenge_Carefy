@@ -157,14 +157,14 @@ export class MoviesService {
     }
   }
 
-  async getMovieHistory(id: string): Promise<Logger[]> {
+  async getMovieHistory(page: number, limit: number, id: string): Promise<PaginatedListDto<Logger[]>> {
     try {
       const movie = await this.repository.findOneBy({ id });
       if (!movie) {
         throw new NotFoundException('MovieId does not exists');
       }
 
-      return await this.loggerService.findHistoryMovie(id);
+      return await this.loggerService.findHistoryMovie(page, limit, id);
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
 
