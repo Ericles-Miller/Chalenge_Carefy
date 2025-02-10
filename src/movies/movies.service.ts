@@ -1,17 +1,23 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
 import { HttpService } from '@nestjs/axios';
+import { Movie } from './entities/movie.entity';
+import { MovieDto } from './dto/movie.dto';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { PaginatedListDto } from './dto/paginated-list.dto';
+import { EStatusMovie } from './status-movie.enum';
 
 @Injectable()
 export class MoviesService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+
+    @InjectRepository(Movie)
+    private readonly repository: Repository<Movie>,
+  ) {}
 
   async create({ name }: CreateMovieDto, accountId: number, sessionId: string): Promise<void> {
-    //preicso verificar se o filma existe na api externa
-    //se nao existir gero um erro
-    //se existir salvo  na lista de desejos status assistir e retorna o id
-
     const findMovieByName = await this.httpService.axiosRef.get(
       `https://api.themoviedb.org/3/search/movie?query=${name}`,
       {
@@ -26,28 +32,135 @@ export class MoviesService {
       throw new BadRequestException('Movie name not found');
     }
 
-    const movie = findMovieByName.data.results.find((movie) => movie.title === name);
+    const movie: MovieDto = findMovieByName.data.results.find((movie) => movie.title === name);
+
     if (!movie) {
       throw new BadRequestException('Movie name not found');
     }
 
-    // savlar o filme na lista de desejos
-    await this.addFavorite(accountId, sessionId, movie.id.toString());
+    const {
+      adult,
+      backdrop_path,
+      id,
+      original_language,
+      original_title,
+      overview,
+      popularity,
+      poster_path,
+      release_date,
+      title,
+      vote_average,
+      vote_count,
+    } = movie;
+
+    const movieEntity = new Movie(
+      adult,
+      backdrop_path,
+      id,
+      original_language,
+      original_title,
+      overview,
+      popularity,
+      poster_path,
+      release_date,
+      title,
+      vote_average,
+      vote_count,
+    );
+
+    await this.addFavoriteListAPI(accountId, sessionId, movie.id.toString());
+    await this.repository.save(movieEntity);
   }
 
-  findAll() {
-    return `This action returns all movies`;
+  async findAllDatabase(page: number, limit: number): Promise<PaginatedListDto<Movie[]>> {
+    const [movies, total] = await this.repository.findAndCount({
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    return {
+      data: movies,
+      total,
+      page,
+      lastPage: Math.ceil(total / limit),
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} movie`;
+  async findAllApi(accountId: number, sessionId: string): Promise<PaginatedListDto<any[]>> {
+    try {
+      const response = await this.httpService.axiosRef.get(
+        `https://api.themoviedb.org/3/account/${accountId}/favorite/movies`,
+        {
+          params: {
+            api_key: process.env.API_KEY,
+            session_id: sessionId,
+          },
+        },
+      );
+
+      return {
+        data: response.data.results,
+        total: response.data.total_results,
+        page: response.data.page,
+        lastPage: response.data.total_pages,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao listar filmes favoritos', error);
+    }
   }
 
-  update(id: number, updateMovieDto: UpdateMovieDto) {
-    return `This action updates a #${id} movie`;
+  async findOneDatabase(id: string): Promise<Movie> {
+    try {
+      const movie = await this.repository.findOneBy({ id });
+      if (!movie) {
+        throw new BadRequestException('MovieId does not exists');
+      }
+
+      return movie;
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+
+      throw new InternalServerErrorException('Error finding movie');
+    }
   }
 
-  async addFavorite(accountId: number, sessionId: string, movieId: string): Promise<void> {
+  async findOneApi(id: number): Promise<any> {
+    try {
+      const response = await this.httpService.axiosRef.get(`https://api.themoviedb.org/3/movie/${id}`, {
+        headers: {
+          Authorization: `Bearer ${process.env.TOKEN_API}`,
+          accept: 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+
+      throw new InternalServerErrorException('Error finding movie');
+    }
+  }
+
+  async updateStateMovieDatabase(id: string, statusMovie: EStatusMovie): Promise<void> {
+    try {
+      const movie = await this.findOneDatabase(id);
+
+      if (!movie) throw new BadRequestException('MovieId does not exists');
+
+      if (movie.status === EStatusMovie.ASSISTIR && statusMovie === EStatusMovie.ASSISTIDO) {
+        // atualizo para o status de assistir
+      } else if (movie.status === EStatusMovie.ASSISTIR && statusMovie !== EStatusMovie.ASSISTIR) {
+        throw new BadRequestException('the movie status can only be changed if the movie is watched');
+      } else if (
+        movie.status === EStatusMovie.AVALIADO &&
+        (statusMovie !== EStatusMovie.NAO_RECOMENDADO || statusMovie !== EStatusMovie.RECOMENDADO)
+      ) {
+        throw new BadRequestException('the movie status can only be changed if the movie is watched');
+      }
+    } catch (error) {}
+  }
+
+  async addFavoriteListAPI(accountId: number, sessionId: string, movieId: string): Promise<void> {
     try {
       await this.httpService.axiosRef.post(
         `https://api.themoviedb.org/3/account/${accountId}/favorite`,
