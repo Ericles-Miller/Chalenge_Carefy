@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
 import { HttpService } from '@nestjs/axios';
 import { Movie } from './entities/movie.entity';
 import { MovieDto } from './dto/movie.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginatedListDto } from './dto/paginated-list.dto';
+import { EStatusMovie } from './status-movie.enum';
 
 @Injectable()
 export class MoviesService {
@@ -141,8 +141,23 @@ export class MoviesService {
     }
   }
 
-  update(id: number, updateMovieDto: UpdateMovieDto) {
-    return `This action updates a #${id} movie`;
+  async updateStateMovieDatabase(id: string, statusMovie: EStatusMovie): Promise<void> {
+    try {
+      const movie = await this.findOneDatabase(id);
+
+      if (!movie) throw new BadRequestException('MovieId does not exists');
+
+      if (movie.status === EStatusMovie.ASSISTIR && statusMovie === EStatusMovie.ASSISTIDO) {
+        // atualizo para o status de assistir
+      } else if (movie.status === EStatusMovie.ASSISTIR && statusMovie !== EStatusMovie.ASSISTIR) {
+        throw new BadRequestException('the movie status can only be changed if the movie is watched');
+      } else if (
+        movie.status === EStatusMovie.AVALIADO &&
+        (statusMovie !== EStatusMovie.NAO_RECOMENDADO || statusMovie !== EStatusMovie.RECOMENDADO)
+      ) {
+        throw new BadRequestException('the movie status can only be changed if the movie is watched');
+      }
+    } catch (error) {}
   }
 
   async addFavoriteListAPI(accountId: number, sessionId: string, movieId: string): Promise<void> {
