@@ -119,11 +119,10 @@ export class MoviesService {
 
       if (
         movie.status !== EStatusMovie.AVALIADO &&
-        statusMovie !== EStatusMovie.RECOMENDADO &&
-        statusMovie !== EStatusMovie.NAO_RECOMENDADO
+        (statusMovie === EStatusMovie.RECOMENDADO || statusMovie === EStatusMovie.NAO_RECOMENDADO)
       )
         throw new BadRequestException(
-          'The film must be "Recommended" or "Not Recommended" before it can be "Rated".',
+          'The movie must be "Recommended" or "Not Recommended" before it can be "Rated".',
         );
 
       movie.setStatus(statusMovie);

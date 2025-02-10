@@ -1,14 +1,14 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req, Query, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Query, Put, Res } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { AuthGuard } from 'src/accounts/auth/AuthGuards';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { RequestWithUser } from 'src/types/request-with-user';
 import { PaginatedListDto } from './dto/paginated-list.dto';
 import { Movie } from './entities/movie.entity';
 import { RateMovieDto } from './dto/rate-movie.dto';
 import { UpdateStatusMovieDto } from './dto/update-movie.dto';
 import { EStatusMovie } from './status-movie.enum';
+import { Response } from 'express';
 
 @Controller('movies')
 @ApiTags('movies')
@@ -19,7 +19,7 @@ export class MoviesController {
   @ApiBearerAuth('sessionAuth')
   @UseGuards(AuthGuard)
   @ApiOperation({
-    summary: 'isnert movie to favorite list',
+    summary: 'insert movie to favorite list',
     description: `
     sample request: 
     POST /movies
@@ -46,9 +46,12 @@ export class MoviesController {
     status: 401,
     description: 'unauthorized',
   })
-  async create(@Body() createMovieDto: CreateMovieDto, @Req() request: RequestWithUser): Promise<Movie> {
-    const user = request.user;
-    return await this.moviesService.create(createMovieDto);
+  async create(@Body() createMovieDto: CreateMovieDto, @Res() response: Response): Promise<Response> {
+    //const user = request.user;
+    const movie = await this.moviesService.create(createMovieDto);
+    response.locals.id = movie.id;
+
+    return response.status(201).json(movie);
   }
 
   @Get('')
