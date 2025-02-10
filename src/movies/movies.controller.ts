@@ -38,9 +38,14 @@ export class MoviesController {
   @Get('api')
   @Get('database')
   @ApiBearerAuth('sessionAuth')
-  async findAllAPI(@Req() request: RequestWithUser) {
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  async findAllAPI(
+    @Req() request: RequestWithUser,
+    @Query('page') page?: string,
+  ): Promise<PaginatedListDto<any[]>> {
     const user = request.user;
-    return await this.moviesService.findAllApi(user.accountId, user.sessionId);
+    const pageNumber = Number(page) > 0 ? Number(page) : 1;
+    return await this.moviesService.findAllApi(user.accountId, user.sessionId, pageNumber);
   }
 
   @Get(':id/database')
