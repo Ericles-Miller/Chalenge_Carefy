@@ -24,8 +24,8 @@ export class LoggerService {
       const log = new Logger(method, url, statusCode, level, movieId, ip, timeRequest, actionType);
 
       await this.logRepository.save(log);
-    } catch {
-      throw new InternalServerErrorException('Error saving log');
+    } catch (error) {
+      throw new InternalServerErrorException('Error saving log', error);
     }
   }
 

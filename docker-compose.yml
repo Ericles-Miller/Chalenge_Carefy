@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    container_name: nestjs-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - NODE_ENV=production
+      - DB_PATH=/usr/src/app/database/mydb.sqlite 
+    networks:
+      - app-network
+    command: ["yarn", "start:prod"]
+
+  db:
+    image: nouchka/sqlite3
+    container_name: sqlite-db
+    volumes:
+      - ./database:/usr/src/app/database 
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

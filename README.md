@@ -35,6 +35,25 @@ $ yarn install
 ## Compile and run the project
 
 ```bash
+
+OBS: O projeto foi configurado para ser executada uma seed que irá salvar um usuário padrão. Para autenticar use o endpoint de login
+adicionando o seguinte objeto no request body 
+```
+{
+  "username": "user01",
+  "password": "12345678"
+}
+```
+
+Feito isso será gerado um token para autenticar os endpoints. 
+
+Você também pode acessar a documentação da Api atraves da porta setada nas variáveis de ambiente ou a porta padrão 3000. Para acessar o endpoint acesse localhost:{port}/api
+
+
+Sobre os teste unitários para o funcionamento de alguns testes de logs é necessário setar o nível de log para trace
+
+
+
 # development
 $ yarn run start
 
@@ -58,92 +77,5 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Requisitos 
-1. Autenticação: 
-   - Use autenticação básica (usuário e senha fixos) para proteger os endpoints da 
-API. Não é necessário criar meios de criação de novos usuários!. 
- 
-2. Integração com API Externa: 
-   - Integre a API com uma API pública de filmes The Movie Database - TMDB. 
-   - Ao adicionar um filme, busque informações como título, sinopse, ano de 
-lançamento e gênero na API externa (qualquer informação adicional pode ser 
-adicionada desde que faça sentido para o projeto). 
- 
-3. Middleware de Logs: 
-   - Crie um middleware que registre todas as requisições recebidas, incluindo: 
- 
-     - Método HTTP, URL, status da resposta, timestamp e identificador único do filme 
-(se aplicável, o filme deve ser válido, ou seja, existente na API sugerida). 
-   - Para cada filme adicionado, gere um identificador único (ex: UUID) e o vincule 
-a todas as ações futuras relacionadas a esse filme (ex: mover para assistido, 
-avaliar, etc.). 
-   - Armazene os logs em banco de dados (ex: SQLite ou MongoDB). 
- 
-4. Estados do Filme: 
-   - Um filme pode estar em um dos seguintes estados: 
-     1. A assistir (estado inicial ao adicionar, sempre). 
-     2. Assistido. 
-     3. Avaliado (com uma nota de 0 a 5). 
-     4. Recomendado ou Não recomendado. 
-   - Crie endpoints para mover o filme entre esses estados. 
- 
-5. Histórico de um Filme: 
-   - Crie um endpoint que retorne o histórico completo de um filme, incluindo todas 
-as ações realizadas (ex: adicionado, movido para assistido, avaliado, etc.) com 
-timestamps e a identificação do usuário que realizou a ação. 
- 
-6. Swagger: 
-   - Documente a API usando Swagger, incluindo exemplos de requisições e 
-respostas para todos os endpoints. 
- 
- 
- 
-Endpoints sugeridos 
-1. Filmes: 
- 
-   - `POST /filme` → Adiciona um filme à lista de desejos. Busca informações na API 
-externa e gera um identificador único. 
-   - `GET /filme` → Lista todos os filmes na lista de desejos. 
-   - `GET /filme/:id` → Retorna detalhes de um filme específico. 
-   - `PUT /filme/:id/estado` → Move o filme para um novo estado (ex: assistido, 
-avaliado, recomendado). 
-   - `POST /filme/:id/avaliar` → Avalia o filme com uma nota de 0 a 5. 
-   - `GET /filme/:id/historico` → Retorna o histórico completo de um filme. 
- 
-2. Logs: 
-   - `GET /logs` → Retorna todos os logs registrados (para fins de debug). 
- 
-Exemplo de funcionamento 
-1. Adicionar um Filme: 
-   - O usuário faz uma requisição `POST /filme` com o nome do filme. 
-   - A API busca informações na API externa (TMDB) e adiciona o filme à lista de 
-desejos com o estado "A assistir". 
-   - Um identificador único é gerado e vinculado ao filme. 
-   - O middleware registra a ação no log. 
- 
-2. Mover para Assistido: 
-   - O usuário faz uma requisição `PUT /filme/:id/estado` com o novo estado 
-"Assistido". 
-   - O middleware registra a ação no log, vinculada ao identificador único do filme. 
- 
-3. Avaliar o Filme: 
-   - O usuário faz uma requisição `POST /filme/:id/avaliar` com uma nota de 0 a 5. 
-   - O middleware registra a ação no log, vinculada ao identificador único do filme. 
- 
- 
-4. Consultar Histórico: 
-   - O usuário faz uma requisição `GET /filme/:id/historico` e recebe o histórico 
-completo do filme, incluindo todas as ações realizadas.
+### Usando o Docker
+execute o comando docker compose up --build

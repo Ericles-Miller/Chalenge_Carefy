@@ -2,6 +2,8 @@ import { LoggerService } from './logger.service';
 import { CustomLogger } from './custom-logger';
 import { Request, Response, NextFunction } from 'express';
 import { LoggerMiddleware } from './loggers-middleware';
+import { ELoggerLevel } from './logger-level.enum';
+import { EActionType } from './action-type.enum';
 
 describe('LoggerMiddleware', () => {
   let middleware: LoggerMiddleware;
@@ -20,7 +22,6 @@ describe('LoggerMiddleware', () => {
       log: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
-      debug: jest.fn(),
       verbose: jest.fn(),
     };
 
@@ -30,7 +31,7 @@ describe('LoggerMiddleware', () => {
       method: 'GET',
       originalUrl: '/test',
       ip: '127.0.0.1',
-      params: { movieId: '123' },
+      params: { id: '123' },
     };
 
     response = {
@@ -52,8 +53,9 @@ describe('LoggerMiddleware', () => {
       '/test',
       200,
       '127.0.0.1',
-      expect.any(String),
-      expect.any(Number),
+      ELoggerLevel.INFO,
+      0,
+      EActionType.OTHER,
       '123',
     );
 
