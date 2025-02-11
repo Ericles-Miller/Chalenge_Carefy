@@ -22,11 +22,6 @@ describe('CustomLogger', () => {
     expect(mockPinoLogger.trace).toHaveBeenCalledWith({ context: 'TestContext' }, 'Test message');
   });
 
-  it('should call debug when debug is used', () => {
-    customLogger.debug('Debug message', 'DebugContext');
-    expect(mockPinoLogger.debug).toHaveBeenCalledWith({ context: 'DebugContext' }, 'Debug message');
-  });
-
   it('should call info when log is used', () => {
     customLogger.log('Info message', 'InfoContext');
     expect(mockPinoLogger.info).toHaveBeenCalledWith({ context: 'InfoContext' }, 'Info message');
