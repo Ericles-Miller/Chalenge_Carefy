@@ -37,7 +37,7 @@ export class MoviesService {
         `https://api.themoviedb.org/3/search/movie?query=${name}`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.TOKEN_API}`,
+            Authorization: `Bearer ${TOKEN_API}`,
             accept: 'application/json',
           },
         },
