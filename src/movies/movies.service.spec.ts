@@ -12,6 +12,9 @@ import { Logger } from 'nestjs-pino';
 import { EStatusMovie } from './status-movie.enum';
 import { PaginatedListDto } from './dto/paginated-list.dto';
 import { RateMovieDto } from './dto/rate-movie.dto';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 describe('MoviesService', () => {
   let service: MoviesService;
@@ -108,7 +111,7 @@ describe('MoviesService', () => {
         },
       });
 
-      await expect(service.create(createMovieDto)).rejects.toThrowError(
+      await expect(service.create(createMovieDto)).rejects.toThrow(
         new BadRequestException('Movie name not found'),
       );
     });
@@ -152,7 +155,7 @@ describe('MoviesService', () => {
           ),
         );
 
-      await expect(service.create(createMovieDto)).rejects.toThrowError(
+      await expect(service.create(createMovieDto)).rejects.toThrow(
         new BadRequestException('Movie already exists in favorite list'),
       );
     });
@@ -162,7 +165,7 @@ describe('MoviesService', () => {
 
       jest.spyOn(httpService.axiosRef, 'get').mockRejectedValueOnce(new Error('Something went wrong'));
 
-      await expect(service.create(createMovieDto)).rejects.toThrowError(
+      await expect(service.create(createMovieDto)).rejects.toThrow(
         new InternalServerErrorException('Internal server error to create movie'),
       );
     });

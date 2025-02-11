@@ -31,13 +31,13 @@ export class MoviesService {
   async create({ name }: CreateMovieDto): Promise<Movie> {
     try {
       const TOKEN_API = process.env.TOKEN_API;
-      if (!TOKEN_API) throw new Error('TOKEN_API not found');
+      if (!TOKEN_API) throw new InternalServerErrorException('TOKEN_API not found');
 
       const findMovieByName = await this.httpService.axiosRef.get(
         `https://api.themoviedb.org/3/search/movie?query=${name}`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.TOKEN_API}`,
+            Authorization: `Bearer ${TOKEN_API}`,
             accept: 'application/json',
           },
         },
