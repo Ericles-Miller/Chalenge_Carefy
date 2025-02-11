@@ -175,7 +175,7 @@ describe('LoggerService', () => {
     });
 
     it('should throw InternalServerErrorException on unexpected error', async () => {
-      jest.spyOn(repository, 'find').mockRejectedValue(new Error('Error finding log  '));
+      jest.spyOn(repository, 'find').mockRejectedValue(new Error('Error finding log'));
 
       await expect(service.getLogs()).rejects.toThrow(InternalServerErrorException);
     });

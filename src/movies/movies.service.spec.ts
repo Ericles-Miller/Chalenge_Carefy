@@ -9,6 +9,8 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { MovieDto } from './dto/movie.dto';
 import { LoggerService } from 'src/loggers/logger.service';
 import { Logger } from 'nestjs-pino';
+import { EStatusMovie } from './status-movie.enum';
+import { PaginatedListDto } from './dto/paginated-list.dto';
 
 describe('MoviesService', () => {
   let service: MoviesService;
@@ -162,6 +164,93 @@ describe('MoviesService', () => {
       await expect(service.create(createMovieDto)).rejects.toThrowError(
         new InternalServerErrorException('Internal server error to create movie'),
       );
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return paginated list of movies', async () => {
+      const page = 1;
+      const limit = 10;
+      const status = EStatusMovie.ASSISTIR;
+
+      const movies = [
+        new Movie(
+          false,
+          '/bCDn6Bzfjjiov7Reu5MVZIhVQJm.jpg',
+          1,
+          'en',
+          'Movie 1',
+          'overview',
+          5,
+          'path',
+          new Date(),
+          'Movie 1',
+        ),
+        new Movie(
+          true,
+          '/bCDn6Bzfjjiov7Reu5MVZIhVQJm.jpg',
+          2,
+          'en',
+          'Movie 2',
+          'overview',
+          6,
+          'path',
+          new Date(),
+          'Movie 2',
+        ),
+      ];
+
+      const total = 2;
+
+      jest.spyOn(repository, 'findAndCount').mockResolvedValueOnce([movies, total]);
+
+      const result: PaginatedListDto<Movie[]> = await service.findAll(page, limit, status);
+
+      expect(result).toEqual({
+        data: movies,
+        total,
+        page,
+        lastPage: 1,
+      });
+      expect(repository.findAndCount).toHaveBeenCalledWith({
+        where: { status },
+        take: limit,
+        skip: (page - 1) * limit,
+      });
+    });
+
+    it('should return empty list when no movies are found', async () => {
+      const page = 1;
+      const limit = 10;
+      const status = EStatusMovie.NAO_RECOMENDADO;
+
+      const movies: Movie[] = [];
+      const total = 0;
+
+      jest.spyOn(repository, 'findAndCount').mockResolvedValueOnce([movies, total]);
+
+      const result: PaginatedListDto<Movie[]> = await service.findAll(page, limit, status);
+
+      expect(result).toEqual({
+        data: [],
+        total,
+        page,
+        lastPage: 0,
+      });
+      expect(repository.findAndCount).toHaveBeenCalledWith({
+        where: { status },
+        take: limit,
+        skip: (page - 1) * limit,
+      });
+    });
+
+    it('should throw BadRequestException if an unexpected error occurs', async () => {
+      const page = 1;
+      const limit = 10;
+
+      jest.spyOn(repository, 'findAndCount').mockRejectedValue(new Error('Something went wrong'));
+
+      await expect(service.findAll(page, limit)).rejects.toThrow(InternalServerErrorException);
     });
   });
 });

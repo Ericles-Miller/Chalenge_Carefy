@@ -88,18 +88,22 @@ export class MoviesService {
   }
 
   async findAll(page: number, limit: number, status?: EStatusMovie): Promise<PaginatedListDto<Movie[]>> {
-    const [movies, total] = await this.repository.findAndCount({
-      where: status ? { status } : {},
-      take: limit,
-      skip: (page - 1) * limit,
-    });
+    try {
+      const [movies, total] = await this.repository.findAndCount({
+        where: status ? { status } : {},
+        take: limit,
+        skip: (page - 1) * limit,
+      });
 
-    return {
-      data: movies,
-      total,
-      page,
-      lastPage: Math.ceil(total / limit),
-    };
+      return {
+        data: movies,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      };
+    } catch {
+      throw new InternalServerErrorException('Internal server error finding movies');
+    }
   }
 
   async findOne(id: string): Promise<Movie> {
