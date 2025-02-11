@@ -29,6 +29,9 @@ validacao do token
  - adicionar createdAt e updatedAt
  - adicionar como default estado a assistir na tabela 
 
+-- valiar variaveis de ambiente se sao diferentes de nulas 
+
+
 ############ endpoints 
 
 - `POST /filme` → Adiciona um filme à lista de desejos. Busca informações na API externa e gera um identificador único.  ok
