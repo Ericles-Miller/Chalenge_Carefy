@@ -11,6 +11,7 @@ import { LoggerService } from 'src/loggers/logger.service';
 import { Logger } from 'nestjs-pino';
 import { EStatusMovie } from './status-movie.enum';
 import { PaginatedListDto } from './dto/paginated-list.dto';
+import { RateMovieDto } from './dto/rate-movie.dto';
 
 describe('MoviesService', () => {
   let service: MoviesService;
@@ -298,6 +299,108 @@ describe('MoviesService', () => {
         new InternalServerErrorException('Error finding movie'),
       );
       expect(repository.findOneBy).toHaveBeenCalledWith({ id: movieId });
+    });
+  });
+
+  describe('rateMovie', () => {
+    it('should successfully rate a movie when movie status allows', async () => {
+      const movieId = '1';
+      const rateMovieDto: RateMovieDto = { rate: 5 };
+      const movie = new Movie(
+        false,
+        'path1',
+        1,
+        'en',
+        'Movie 1',
+        'overview',
+        5,
+        'path',
+        new Date(),
+        'Movie 1',
+      );
+
+      movie.status = EStatusMovie.ASSISTIDO;
+      movie.rate = 5;
+      jest.spyOn(repository, 'findOneBy').mockResolvedValueOnce(movie);
+      jest.spyOn(repository, 'update').mockResolvedValueOnce(undefined);
+
+      await service.rateMovie(movieId, rateMovieDto);
+
+      expect(movie.status).toBe(EStatusMovie.AVALIADO);
+      expect(movie.rate).toBe(5);
+      expect(repository.update).toHaveBeenCalledWith({ id: movieId }, movie);
+    });
+
+    it('should throw NotFoundException if movie is not found', async () => {
+      const movieId = '1';
+      const rateMovieDto: RateMovieDto = { rate: 5 };
+
+      jest.spyOn(repository, 'findOneBy').mockResolvedValueOnce(null);
+
+      await expect(service.rateMovie(movieId, rateMovieDto)).rejects.toThrow(
+        new NotFoundException('MovieId does not exists'),
+      );
+    });
+
+    it('should throw BadRequestException if movie status is "ASSISTIR"', async () => {
+      const movieId = '1';
+      const rateMovieDto: RateMovieDto = { rate: 5 };
+      const movie = new Movie(
+        true,
+        'path1',
+        1,
+        'en',
+        'Movie 1',
+        'overview',
+        5,
+        'path',
+        new Date(),
+        'Movie 1',
+      );
+
+      movie.status = EStatusMovie.ASSISTIR;
+
+      jest.spyOn(repository, 'findOneBy').mockResolvedValueOnce(movie);
+
+      await expect(service.rateMovie(movieId, rateMovieDto)).rejects.toThrow(
+        new BadRequestException('the movie status can only be changed if the movie is watched'),
+      );
+    });
+
+    it('should throw BadRequestException if movie was already rated', async () => {
+      const movieId = '1';
+      const rateMovieDto: RateMovieDto = { rate: 5 };
+      const movie = new Movie(
+        false,
+        'path1',
+        1,
+        'en',
+        'Movie 1',
+        'overview',
+        5,
+        'path',
+        new Date(),
+        'Movie 1',
+      );
+
+      movie.status = EStatusMovie.RECOMENDADO;
+
+      jest.spyOn(repository, 'findOneBy').mockResolvedValueOnce(movie);
+
+      await expect(service.rateMovie(movieId, rateMovieDto)).rejects.toThrow(
+        new BadRequestException('the movie was already rated'),
+      );
+    });
+
+    it('should throw InternalServerErrorException on unexpected errors', async () => {
+      const movieId = '1';
+      const rateMovieDto: RateMovieDto = { rate: 5 };
+
+      jest.spyOn(repository, 'findOneBy').mockRejectedValueOnce(new Error('Unexpected error'));
+
+      await expect(service.rateMovie(movieId, rateMovieDto)).rejects.toThrow(
+        new InternalServerErrorException('Error to rate movie'),
+      );
     });
   });
 });
