@@ -20,7 +20,6 @@ dotenv.config();
 
 @Module({
   imports: [
-    // Inclua o LoggerModule para que o PinoLogger seja registrado como provider
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
