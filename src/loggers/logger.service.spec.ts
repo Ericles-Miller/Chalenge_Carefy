@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ELoggerLevel } from './logger-level.enum';
 import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { EActionType } from './action-type.enum';
 
 describe('LoggerService', () => {
   let service: LoggerService;
@@ -21,6 +22,9 @@ describe('LoggerService', () => {
       timeRequest: 100,
       movieId: '',
       timestamp: new Date(),
+      actionType: EActionType.OTHER,
+      createdAt: new Date(),
+      movie: undefined,
     },
   ];
 
@@ -60,7 +64,8 @@ describe('LoggerService', () => {
         ip: '127.0.0.1',
         level: ELoggerLevel.INFO,
         timeRequest: 100,
-        movieId: '',
+        actionType: EActionType.OTHER,
+        movieId: undefined,
       };
 
       await service.logRequest(
@@ -70,6 +75,7 @@ describe('LoggerService', () => {
         log.ip,
         log.level,
         log.timeRequest,
+        log.actionType,
         log.movieId,
       );
 
@@ -85,6 +91,7 @@ describe('LoggerService', () => {
         ip: '127.0.0.1',
         level: ELoggerLevel.WARN,
         timeRequest: 100,
+        actionType: EActionType.OTHER,
         movieId: '',
       };
 
@@ -95,6 +102,7 @@ describe('LoggerService', () => {
         log.ip,
         log.level,
         log.timeRequest,
+        log.actionType,
         log.movieId,
       );
 
@@ -110,6 +118,7 @@ describe('LoggerService', () => {
         ip: '127.0.0.1',
         level: ELoggerLevel.ERROR,
         timeRequest: 100,
+        actionType: EActionType.OTHER,
         movieId: '',
       };
 
@@ -120,6 +129,7 @@ describe('LoggerService', () => {
         log.ip,
         log.level,
         log.timeRequest,
+        log.actionType,
         log.movieId,
       );
 
@@ -136,6 +146,7 @@ describe('LoggerService', () => {
         ip: '127.0.0.1',
         level: ELoggerLevel.INFO,
         timeRequest: 100,
+        actionType: EActionType.OTHER,
         movieId: '',
       };
 
@@ -147,6 +158,7 @@ describe('LoggerService', () => {
           log.ip,
           log.level,
           log.timeRequest,
+          log.actionType,
           log.movieId,
         ),
       ).rejects.toThrow(InternalServerErrorException);
@@ -180,7 +192,10 @@ describe('LoggerService', () => {
         level: ELoggerLevel.INFO,
         timeRequest: 100,
         movieId: '',
+        actionType: EActionType.OTHER,
         timestamp: new Date(),
+        createdAt: new Date(),
+        movie: undefined,
       };
 
       jest.spyOn(repository, 'findOne').mockResolvedValue(log);
