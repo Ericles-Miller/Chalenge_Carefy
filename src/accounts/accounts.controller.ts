@@ -3,7 +3,7 @@ import { AccountsService } from './accounts.service';
 import { LoginAccountDto } from './dto/login-account.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SessionTokenResponseDto } from './dto/session-token-response.dto';
-import { AuthGuard } from './auth/AuthGuards';
+import { JwtAuthGuard } from './auth/AuthGuards';
 import { logoutAccountDto } from './dto/logout-account.dto';
 
 @Controller('accounts')
@@ -39,7 +39,7 @@ export class AccountsController {
 
   @Delete()
   @ApiBearerAuth('sessionAuth')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Create a new session with username and password.',
     description: `
