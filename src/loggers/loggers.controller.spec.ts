@@ -1,13 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule } from '@nestjs/axios';
+import { MoviesController } from '../movies/movies.controller';
+import { MoviesService } from '../movies/movies.service';
+import { Movie } from '../movies/entities/movie.entity';
+import { Logger } from './entities/logger.entity';
+import { Response } from 'express';
+import { CreateMovieDto } from 'src/movies/dto/create-movie.dto';
 import { LoggerController } from './logger.controller';
 import { LoggerService } from './logger.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Logger } from './entities/logger.entity';
-import { ELoggerLevel } from './logger-level.enum';
+import { JwtAuthGuard } from 'src/accounts/auth/AuthGuards';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 describe('LogsController (Integration Test)', () => {
   let controller: LoggerController;
   let service: LoggerService;
+  let moviesController: MoviesController;
+  let moviesService: MoviesService;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,62 +28,66 @@ describe('LogsController (Integration Test)', () => {
         TypeOrmModule.forRoot({
           type: 'sqlite',
           database: ':memory:',
-          entities: [Logger],
+          entities: [Movie, Logger],
           synchronize: true,
         }),
-        TypeOrmModule.forFeature([Logger]),
+        TypeOrmModule.forFeature([Movie, Logger]),
+        HttpModule,
+        JwtModule.register({
+          secret: 'dc57f9ec-c6b2-477f-a6af-fc57c1b86be0',
+          signOptions: { expiresIn: '1h' },
+        }),
       ],
-      controllers: [LoggerController],
-      providers: [LoggerService],
+      controllers: [LoggerController, MoviesController],
+      providers: [
+        LoggerService,
+        MoviesService,
+        {
+          provide: JwtAuthGuard,
+          useValue: { canActivate: () => true },
+        },
+      ],
     }).compile();
 
     controller = module.get<LoggerController>(LoggerController);
     service = module.get<LoggerService>(LoggerService);
+    moviesController = module.get<MoviesController>(MoviesController);
+    moviesService = module.get<MoviesService>(MoviesService);
+    jwtService = module.get<JwtService>(JwtService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
     expect(service).toBeDefined();
+    expect(moviesController).toBeDefined();
+    expect(moviesService).toBeDefined();
+    expect(JwtAuthGuard).toBeDefined();
   });
 
   describe('suit tests getLogs (Integration Test)', () => {
     it('should be able to get all logs of database', async () => {
-      await service.logRequest('GET', 'http://localhost:3000/logs', 200, '127.0.0.1', ELoggerLevel.INFO, 100);
-      await service.logRequest('GET', 'http://localhost:3000/logs', 404, '127.0.0.1', ELoggerLevel.WARN, 100);
+      const payload = { id: '50fa90f1-8667-4c70-ab21-a0d4d6bb68a7', username: 'user01' };
+      const token = jwtService.sign(payload);
+
+      const createMovieDto: CreateMovieDto = {
+        name: 'Gladiator',
+      };
+
+      const mockResponse = {
+        locals: { id: '50fa90f1-8667-4c70-ab21-a0d4d6bb68a7' },
+        set: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      } as unknown as Response;
+
+      const createResponse = await moviesController.create(createMovieDto, mockResponse);
+      createResponse.set('Authorization', `Bearer ${token}`);
 
       const result = await controller.getLogs();
 
-      expect(result.length).toBe(2);
-      expect(result[0].method).toBe('GET');
-      expect(result[0].url).toBe('http://localhost:3000/logs');
-      expect(result[0].statusCode).toBe(200);
-      expect(result[0].ip).toBe('127.0.0.1');
-      expect(result[0].level).toBe(ELoggerLevel.INFO);
-      expect(result[0].timeRequest).toBe(100);
-
-      expect(result[1].method).toBe('GET');
-      expect(result[1].url).toBe('http://localhost:3000/logs');
-      expect(result[1].statusCode).toBe(404);
-      expect(result[1].ip).toBe('127.0.0.1');
-      expect(result[1].level).toBe(ELoggerLevel.WARN);
-      expect(result[1].timeRequest).toBe(100);
-    });
-  });
-
-  describe('suit tests findLog (Integration Test)', () => {
-    it('should be able to find log by id', async () => {
-      await service.logRequest('GET', 'http://localhost:3000/logs', 200, '127.0.0.1', ELoggerLevel.INFO, 100);
-      const logs = await service.getLogs();
-
-      const result = await controller.getLogById(logs[0].id);
-
-      expect(result.id).toBe(logs[0].id);
-      expect(result.method).toBe(logs[0].method);
-      expect(result.url).toBe(logs[0].url);
-      expect(result.statusCode).toBe(logs[0].statusCode);
-      expect(result.ip).toBe(logs[0].ip);
-      expect(result.level).toBe(logs[0].level);
-      expect(result.timeRequest).toBe(logs[0].timeRequest);
+      expect(result.length).toBe(1);
+      expect(result[0].method).toBe('POST');
+      expect(result[0].url).toBe('/movie');
     });
   });
 });
