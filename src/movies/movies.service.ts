@@ -29,56 +29,62 @@ export class MoviesService {
   ) {}
 
   async create({ name }: CreateMovieDto): Promise<Movie> {
-    const findMovieByName = await this.httpService.axiosRef.get(
-      `https://api.themoviedb.org/3/search/movie?query=${name}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TOKEN_API}`,
-          accept: 'application/json',
+    try {
+      const findMovieByName = await this.httpService.axiosRef.get(
+        `https://api.themoviedb.org/3/search/movie?query=${name}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.TOKEN_API}`,
+            accept: 'application/json',
+          },
         },
-      },
-    );
+      );
 
-    if (findMovieByName.data.results.length === 0) {
-      throw new BadRequestException('Movie name not found');
+      if (findMovieByName.data.results.length === 0) {
+        throw new BadRequestException('Movie name not found');
+      }
+
+      const movie: MovieDto = findMovieByName.data.results.find((movie) => movie.title === name);
+
+      if (!movie) {
+        throw new BadRequestException('Movie name not found');
+      }
+
+      const {
+        adult,
+        backdrop_path,
+        id,
+        original_language,
+        original_title,
+        overview,
+        popularity,
+        poster_path,
+        release_date,
+        title,
+      } = movie;
+
+      const movieExists = await this.repository.findOne({ where: { originalTitle: original_title } });
+      if (movieExists) throw new BadRequestException('Movie already exists in favorite list');
+
+      const movieEntity = new Movie(
+        adult,
+        backdrop_path,
+        id,
+        original_language,
+        original_title,
+        overview,
+        popularity,
+        poster_path,
+        release_date,
+        title,
+      );
+
+      return await this.repository.save(movieEntity);
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+
+      throw new InternalServerErrorException('Internal server error to create movie');
     }
-
-    const movie: MovieDto = findMovieByName.data.results.find((movie) => movie.title === name);
-
-    if (!movie) {
-      throw new BadRequestException('Movie name not found');
-    }
-
-    const {
-      adult,
-      backdrop_path,
-      id,
-      original_language,
-      original_title,
-      overview,
-      popularity,
-      poster_path,
-      release_date,
-      title,
-    } = movie;
-
-    const movieExists = await this.repository.findOne({ where: { originalTitle: original_title } });
-    if (movieExists) throw new BadRequestException('Movie already exists in favorite list');
-
-    const movieEntity = new Movie(
-      adult,
-      backdrop_path,
-      id,
-      original_language,
-      original_title,
-      overview,
-      popularity,
-      poster_path,
-      release_date,
-      title,
-    );
-
-    return await this.repository.save(movieEntity);
   }
 
   async findAll(page: number, limit: number, status?: EStatusMovie): Promise<PaginatedListDto<Movie[]>> {

@@ -48,7 +48,6 @@ export class MoviesController {
     description: 'Unauthorized',
   })
   async create(@Body() createMovieDto: CreateMovieDto, @Res() response: Response): Promise<Response> {
-    //const user = request.user;
     const movie = await this.moviesService.create(createMovieDto);
     response.locals.id = movie.id;
 
