@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HttpService } from '@nestjs/axios';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { Movie } from './entities/movie.entity';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -251,6 +251,53 @@ describe('MoviesService', () => {
       jest.spyOn(repository, 'findAndCount').mockRejectedValue(new Error('Something went wrong'));
 
       await expect(service.findAll(page, limit)).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a movie when movie is found', async () => {
+      const movieId = '1';
+      const movie = new Movie(
+        true,
+        'path1',
+        1,
+        'en',
+        'Movie 1',
+        'overview',
+        5,
+        'path',
+        new Date(),
+        'Movie 1',
+      );
+
+      jest.spyOn(repository, 'findOneBy').mockResolvedValueOnce(movie);
+
+      const result: Movie = await service.findOne(movieId);
+
+      expect(result).toEqual(movie);
+      expect(repository.findOneBy).toHaveBeenCalledWith({ id: movieId });
+    });
+
+    it('should throw NotFoundException if movie is not found', async () => {
+      const movieId = '1';
+
+      jest.spyOn(repository, 'findOneBy').mockResolvedValueOnce(null);
+
+      await expect(service.findOne(movieId)).rejects.toThrow(
+        new NotFoundException('MovieId does not exists'),
+      );
+      expect(repository.findOneBy).toHaveBeenCalledWith({ id: movieId });
+    });
+
+    it('should throw InternalServerErrorException on unexpected errors', async () => {
+      const movieId = '1';
+
+      jest.spyOn(repository, 'findOneBy').mockRejectedValueOnce(new Error('Unexpected error'));
+
+      await expect(service.findOne(movieId)).rejects.toThrow(
+        new InternalServerErrorException('Error finding movie'),
+      );
+      expect(repository.findOneBy).toHaveBeenCalledWith({ id: movieId });
     });
   });
 });
