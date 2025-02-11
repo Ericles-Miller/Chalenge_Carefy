@@ -1,123 +1,64 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { LoginAccountDto } from './dto/login-account.dto';
-import { HttpService } from '@nestjs/axios';
-import { ResponseTokenDto } from './dto/response-token.dto';
 import * as dotenv from 'dotenv';
 import { SessionTokenResponseDto } from './dto/session-token-response.dto';
 import { logoutAccountDto } from './dto/logout-account.dto';
 import { CheckTokens } from './auth/CheckTokens';
+import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
 
 dotenv.config();
 
 @Injectable()
 export class AccountsService {
   private readonly checkTokens = new CheckTokens();
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+
+    @InjectRepository(User)
+    private readonly repository: Repository<User>,
+  ) {}
 
   async Login({ password, username }: LoginAccountDto): Promise<SessionTokenResponseDto> {
     try {
-      const { requestToken } = await this.getRequestToken();
+      const user = await this.repository.findOne({ where: { username } });
+      if (!user) throw new BadRequestException('Username or password incorrect');
 
-      await this.httpService.axiosRef.post(
-        `https://api.themoviedb.org/3/authentication/token/validate_with_login`,
-        {
-          username,
-          password,
-          request_token: requestToken,
-        },
-        {
-          headers: {
-            accept: 'application/json',
-            'content-type': 'application/json',
-            Authorization: `Bearer ${process.env.TOKEN_API}`,
-          },
-        },
-      );
+      if (user.password !== password) throw new BadRequestException('Username or password incorrect');
 
-      const sessionId = await this.createSession(requestToken);
+      const sessionId = await this.createSession(user);
       return { sessionId };
     } catch (error) {
-      this.handleHttpError(error, 'Error to login user');
+      if (error instanceof BadRequestException) throw error;
+
+      throw new InternalServerErrorException('Internal server error to login user');
     }
   }
 
   async Logout({ sessionId }: logoutAccountDto): Promise<void> {
     try {
-      await this.httpService.axiosRef.delete('https://api.themoviedb.org/3/authentication/session', {
-        headers: {
-          Authorization: `Bearer ${process.env.TOKEN_API}`,
-          accept: 'application/json',
-        },
-        data: { session_id: sessionId },
-      });
-
       this.checkTokens.invalidateToken(sessionId);
-    } catch (error) {
-      this.handleHttpError(error, 'Error to logout user');
+    } catch {
+      throw new InternalServerErrorException('Error to logout user');
     }
   }
 
-  private async getRequestToken(): Promise<ResponseTokenDto> {
+  private async createSession(user: User): Promise<string> {
     try {
-      const response = await this.httpService.axiosRef.get(
-        'https://api.themoviedb.org/3/authentication/token/new',
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.TOKEN_API}`,
-            accept: 'application/json',
-          },
-        },
-      );
-
-      return {
-        expiresAt: response.data.expires_at,
-        requestToken: response.data.request_token,
-        success: response.data.success,
+      const payload = {
+        userId: user.id,
+        username: user.username,
       };
+
+      const token = this.jwtService.sign(payload);
+
+      return token;
     } catch (error) {
-      this.handleHttpError(error, 'Error to get request token');
+      if (error instanceof BadRequestException) throw error;
+
+      throw new InternalServerErrorException('Error to create session');
     }
-  }
-
-  private async createSession(requestToken: string): Promise<string> {
-    try {
-      const response = await this.httpService.axiosRef.post(
-        'https://api.themoviedb.org/3/authentication/session/new',
-        { request_token: requestToken },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.TOKEN_API}`,
-            accept: 'application/json',
-          },
-        },
-      );
-
-      return response.data.session_id;
-    } catch (error) {
-      this.handleHttpError(error, 'Error to create session');
-    }
-  }
-
-  private handleHttpError(error: any, message: string): never {
-    if (error.response) {
-      const { status, data } = error.response;
-
-      if (status === 401) {
-        throw new UnauthorizedException(data?.status_message);
-      }
-
-      if (status === 400) {
-        throw new BadRequestException(data?.status_message);
-      }
-
-      throw new InternalServerErrorException(`${message}: ${data?.status_message}`);
-    }
-
-    throw new InternalServerErrorException(`${message}: Unexpected server error`);
   }
 }
