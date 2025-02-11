@@ -6,6 +6,7 @@ import { LoggersModule } from './loggers/loggers.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetPayloadUserMiddleware } from './accounts/auth/get-payload-user-middleware';
 import { HttpModule } from '@nestjs/axios';
+import { SeedService } from './database/seed-service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { HttpModule } from '@nestjs/axios';
     HttpModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [SeedService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

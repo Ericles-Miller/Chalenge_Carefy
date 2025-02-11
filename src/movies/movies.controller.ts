@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Query, Put, Res } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
-import { AuthGuard } from 'src/accounts/auth/AuthGuards';
+import { JwtAuthGuard } from 'src/accounts/auth/AuthGuards';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PaginatedListDto } from './dto/paginated-list.dto';
 import { Movie } from './entities/movie.entity';
@@ -18,7 +18,7 @@ export class MoviesController {
 
   @Post()
   @ApiBearerAuth('sessionAuth')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'insert movie to favorite list',
     description: `
@@ -57,7 +57,7 @@ export class MoviesController {
 
   @Get('')
   @ApiBearerAuth('sessionAuth')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({
@@ -119,7 +119,7 @@ export class MoviesController {
 
   @Get(':id')
   @ApiBearerAuth('sessionAuth')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'find movie with id',
     description: `
@@ -150,7 +150,7 @@ export class MoviesController {
 
   @Post(':id/avaliar')
   @ApiBearerAuth('sessionAuth')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'find movie with id',
     description: `
@@ -189,7 +189,7 @@ export class MoviesController {
 
   @Put(':id/estado')
   @ApiBearerAuth('sessionAuth')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBody({
     type: UpdateStatusMovieDto,
     required: true,
@@ -248,7 +248,7 @@ export class MoviesController {
 
   @Get(':id/historico')
   @ApiBearerAuth('sessionAuth')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOperation({
